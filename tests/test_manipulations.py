@@ -147,9 +147,78 @@ def test_swap_keywords():
     run_test_cases(swap_keywords, test_cases)
 
 
+def test_spaces_to_comments():
+    payloads_results = [
+        ("admin'/**/OR\n1=1#", ["admin' OR\n1=1#"]),
+        ("admin' OR\n1=1#", ["admin'/**/OR\n1=1#"]),
+        ("admin'\nOR 1=1#", ["admin'\nOR/**/1=1#"]),
+        ("admin'\nOR/**/1=1#", ["admin'\nOR 1=1#"]),
+    ]
+
+    test_cases = [
+        {'payload': payload, 'expected': expected}
+        for payload, expected in payloads_results
+    ]
+
+    run_test_cases(spaces_to_comments, test_cases)
+
+
+def test_spaces_to_whitespaces_alternatives():
+    replacements = {
+        " ": ["\t", "\n", "\f", "\v", "\xa0"],
+        "\t": [" ", "\n", "\f", "\v", "\xa0"],
+        "\n": ["\t", " ", "\f", "\v", "\xa0"],
+        "\f": ["\t", "\n", " ", "\v", "\xa0"],
+        "\v": ["\t", "\n", "\f", " ", "\xa0"],
+        "\xa0": ["\t", "\n", "\f", "\v", " "],
+    }
+
+    test_cases = [
+        {'payload': f"admin'{symbol}OR\xa01=1#", 'expected': [f"admin'{repl}OR\xa01=1#" for repl in replacements[symbol]]}
+        for symbol in replacements
+    ]
+
+    run_test_cases(spaces_to_whitespaces_alternatives, test_cases)
+
+
+def test_random_case():
+    payloads_results = [
+        ("select x from table where 1=1", ["SELECT x from table WHERE 1=1"]),
+        ("SELECT x from table WHERE 1=1", ["select x from table where 1=1"]),
+        ("admin' OR 1=1#", ["admin' or 1=1#"]),
+        ("admin' or 1=1 AND True#", ["admin' or 1=1 and True#"]),
+    ]
+
+    test_cases = [
+        {'payload': payload, 'expected': expected}
+        for payload, expected in payloads_results
+    ]
+
+    run_test_cases(random_case, test_cases)
+
+
+def test_comment_rewriting():
+    payloads_results = [
+        ("admin'/**/OR 1=1", ["admin'/*hello*/OR 1=1"]),
+        ("admin' OR/**/1=1", ["admin' OR/*hello*/1=1"]),
+        ("admin' OR 1=1#", ["admin' OR 1=1#hello"]),
+        ("admin' OR 1=1-- ", ["admin' OR 1=1-- hello"]),
+    ]
+
+    test_cases = [
+        {'payload': payload, 'expected': expected}
+        for payload, expected in payloads_results
+    ]
+
+    run_test_cases(comment_rewriting, test_cases)
+
+
 if __name__ == "__main__":
     test_reset_inline_comments()
     test_swap_keywords()
     test_logical_invariant()
     test_change_tautologies()
     test_swap_int_repr()
+    test_spaces_to_comments()
+    test_spaces_to_whitespaces_alternatives()
+    test_comment_rewriting()

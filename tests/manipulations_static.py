@@ -190,7 +190,6 @@ def spaces_to_comments(payload):
     if not symbols_in_payload:
         return payload
 
-    # Randomly choose symbol
     candidate_symbol = symbols_in_payload[0]
     # Check for possible replacements
     replacements = symbols[candidate_symbol]
@@ -219,7 +218,6 @@ def spaces_to_whitespaces_alternatives(payload):
     if not symbols_in_payload:
         return payload
 
-    # Randomly choose symbol
     candidate_symbol = symbols_in_payload[0]
     # Check for possible replacements
     replacements = symbols[candidate_symbol]
@@ -255,11 +253,11 @@ def random_case(payload):
 def comment_rewriting(payload):
 
     if "#" in payload or "-- " in payload:
-        return payload + "hello"
+        return [payload + "hello"]
     elif re.search(r"/\*[^(/\*|\*/)]*\*/", payload):
-        return replace_first(payload, r"/\*[^(/\*|\*/)]*\*/", "/*" + "hello" + "*/")
+        return [replace_first(payload, r"/\*[^(/\*|\*/)]*\*/", "/*" + "hello" + "*/")]
     else:
-        return payload
+        return [payload]
 
 
 def swap_int_repr(payload):
