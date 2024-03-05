@@ -43,19 +43,22 @@ def logical_invariant(payload):
 
     Adds an invariant boolean condition to the payload
 
-    E.g., something OR False
+    E.g., expression OR False
+    where expression is a numeric or string expression (or a tautology) like 1=1, x>1 or x='name'
 
-
-    :param payload:
+    Arguments:
+        payload: query payload string
+    Returns:
+        str: payload modified
     """
 
-    # rule matching numeric tautologies
-    num_tautologies_pos = list(re.finditer(r'\b(\d+)(\s*=\s*|\s+(?i:like)\s+)\1\b', payload))
-    num_tautologies_neg = list(re.finditer(r'\b(\d+)(\s*(!=|<>)\s*|\s+(?i:not like)\s+)(?!\1\b)\d+\b', payload))
-    # rule matching string tautologies
-    string_tautologies_pos = list(re.finditer(r'(\'|\")([a-zA-Z]{1}[\w#@$]*)\1(\s*=\s*|\s+(?i:like)\s+)(\'|\")\2\4', payload))
-    string_tautologies_neg = list(re.finditer(r'(\'|\")([a-zA-Z]{1}[\w#@$]*)\1(\s*(!=|<>)\s*|\s+(?i:not like)\s+)(\'|\")(?!\2)([a-zA-Z]{1}[\w#@$]*)\5', payload))
-    results = num_tautologies_pos + num_tautologies_neg + string_tautologies_pos + string_tautologies_neg
+    # rule matching (common) numeric expressions. See: https://regex101.com/r/lwiL3C/1
+    # It also matches numeric experession where both operands are aliases such as x>y.
+    num_expressions = list(re.finditer(r'\b(\d+|([a-zA-Z]{1}[\w#@$]*))(\s*(=|<|>|<=|>=|<>|!=)\s*|\s+(?i:(not\s+)?like)\s+)(\d+|([a-zA-Z]{1}[\w#@$]*))\b', payload))
+    # rule matching string expressions. See: https://regex101.com/r/NCn5oA/1
+    # NOTE: It does not matches string expression where both operands are aliases because they are already matched by the above regex
+    string_expressions = list(re.finditer(r'((\'|\")([a-zA-Z]{1}[\w#@$]*)\2|([a-zA-Z]{1}[\w#@$]*))(\s*=|<>|!=\s*|\s+(?i:(not\s+)?like)\s+)((\'|\")([a-zA-Z]{1}[\w#@$%_]*)\8)', payload))
+    results = num_expressions + string_expressions
     if not results:
         return payload
     candidate = random.choice(results)
