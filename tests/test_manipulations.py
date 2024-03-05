@@ -4,11 +4,15 @@ from manipulations_static import reset_inline_comments, logical_invariant, chang
 
 
 def run_test_cases(test_func, test_cases):
+    passed = True
     for tc in test_cases:
         result = test_func(tc["payload"])
         if result != tc["expected"]:
-            print("FAILED TEST CASE based on {}\nPayload: {}\nResult: {}\nExpected: {}\n".format(
+            print("FAILED test case \"{}\"\nPayload: {}\nResult: {}\nExpected: {}\n".format(
                 test_func.__name__, tc["payload"], result, tc["expected"]))
+            passed = False
+    if passed:
+        print("Test case \"{}\" successfully passed".format(test_func.__name__))
 
 
 def test_reset_inline_comments():
